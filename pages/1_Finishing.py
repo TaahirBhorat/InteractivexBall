@@ -3,15 +3,19 @@ import plotly.express as px
 import pandas as pd
 logo_url = 'pics/output-onlinepngtools (1).png'
 st.sidebar.image(logo_url)
-st.sidebar.markdown(
-        """
-        <div style='text-align: center; margin-top: -20px;'>
-            <h2>xBall</h2>
-            
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+
+
+# Display the image and text above the sidebar
+st.markdown(
+    f"""
+    <div style="text-align: center;">
+        <img src="{logo_url}" alt="Logo" style="max-width: 100%; height: auto;">
+        <h2>Player Performance Dashboard</h2>
+        <p>Analyze the performance of PSL strikers based on various metrics.</p>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 # Load your data
 def main():
     st.title('PSL Strikers Analysis')
