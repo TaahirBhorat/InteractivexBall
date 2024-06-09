@@ -5,7 +5,6 @@ import numpy as np
 from matplotlib import cm
 from matplotlib.colors import to_hex
 
-
 # Load your data
 file_path = 'data/corrected_merged_dataset_with_shot_time.csv'
 df = pd.read_csv(file_path, sep=",")
@@ -38,17 +37,36 @@ df_ordered = df[ordered_columns + other_columns]
 attributes_mean = df_ordered.mean(numeric_only=True)
 attributes_std = df_ordered.std(numeric_only=True)
 
+# Define a fixed set of 15 distinct colors
+distinct_colors = [
+    '#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF',
+    '#800000', '#008000', '#000080', '#808000', '#800080', '#008080',
+    '#C0C0C0', '#808080', '#FF8080'
+]
+
+# Apply CSS to expand the plot container to full width
+st.markdown(
+    """
+    <style>
+    .reportview-container .main .block-container{
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 # Streamlit app
 def main():
     st.title("Player Performance Comparison")
     st.subheader("PSL Strikers")
 
-    # Input for selecting multiple players
-    selected_players = st.multiselect('Select players to highlight', options=df_ordered['player_name'].unique())
+    # Input for selecting multiple players, limit to 15 players
+    selected_players = st.multiselect('Select up to 15 players to highlight', options=df_ordered['player_name'].unique(), max_selections=15)
 
-    # Generate a color palette for the selected players
-    cmap = cm.get_cmap('tab10', len(selected_players))
-    player_colors = {player: to_hex(cmap(i)) for i, player in enumerate(selected_players)}
+    # Assign colors to selected players
+    player_colors = {player: distinct_colors[i] for i, player in enumerate(selected_players)}
 
     # Creating a Plotly figure
     fig = go.Figure()
@@ -84,7 +102,10 @@ def main():
     fig.update_layout(title="Player Performance Comparison",
                       xaxis_title="Standard Deviation from Mean",
                       yaxis=dict(tickmode='array', tickvals=list(range(len(attributes_mean))), ticktext=attributes_mean.index),
-                      height=800, width=1200)
+                      autosize=True,
+                      margin=dict(l=50, r=50, t=100, b=50),
+                      height=800,
+                      width=2000)  # Increase width to ensure full-width display
 
     # Adding category annotations
     y_positions = {attr: idx for idx, attr in enumerate(attributes_mean.index)}
@@ -99,9 +120,7 @@ def main():
                                    font=dict(color=category_colors[category]))
 
     # Display the plot in Streamlit
-    st.plotly_chart(fig)
+    st.plotly_chart(fig, use_container_width=True)
 
 if __name__ == "__main__":
     main()
-
-
