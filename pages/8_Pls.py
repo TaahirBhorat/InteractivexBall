@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 import numpy as np
+from matplotlib import cm
+from matplotlib.colors import to_hex
 
 # Load your data
 file_path = 'data/corrected_merged_dataset_with_shot_time.csv'
@@ -88,9 +90,9 @@ def main():
                       xaxis_title="Standard Deviation from Mean",
                       yaxis=dict(tickmode='array', tickvals=list(range(len(attributes_mean))), ticktext=attributes_mean.index),
                       autosize=True,
-                      margin=dict(l=20, r=20, t=50, b=20),
-                      height=None,
-                      width=None)
+                      margin=dict(l=50, r=50, t=100, b=50),
+                      height=800,
+                      width=1200)
 
     # Adding category annotations
     y_positions = {attr: idx for idx, attr in enumerate(attributes_mean.index)}
