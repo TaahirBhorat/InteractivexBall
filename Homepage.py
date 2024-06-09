@@ -17,10 +17,7 @@ st.sidebar.markdown(
     """,
     unsafe_allow_html=True
 )
-st.set_page_config(
-    page_title="xBall Interactive",
-    page_icon="⚽️"
-)
+
 
 st.title("Main Page")
 
