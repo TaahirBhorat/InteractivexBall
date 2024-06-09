@@ -44,6 +44,19 @@ distinct_colors = [
     '#C0C0C0', '#808080', '#FF8080'
 ]
 
+# Apply CSS to expand the plot container to full width
+st.markdown(
+    """
+    <style>
+    .reportview-container .main .block-container{
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 # Streamlit app
 def main():
     st.title("Player Performance Comparison")
@@ -92,7 +105,7 @@ def main():
                       autosize=True,
                       margin=dict(l=50, r=50, t=100, b=50),
                       height=800,
-                      width=1200)
+                      width=2000)  # Increase width to ensure full-width display
 
     # Adding category annotations
     y_positions = {attr: idx for idx, attr in enumerate(attributes_mean.index)}
