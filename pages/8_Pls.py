@@ -2,9 +2,6 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 import numpy as np
-from matplotlib import cm
-from matplotlib.colors import to_hex
-
 
 # Load your data
 file_path = 'data/corrected_merged_dataset_with_shot_time.csv'
@@ -38,17 +35,23 @@ df_ordered = df[ordered_columns + other_columns]
 attributes_mean = df_ordered.mean(numeric_only=True)
 attributes_std = df_ordered.std(numeric_only=True)
 
+# Define a fixed set of 15 distinct colors
+distinct_colors = [
+    '#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF',
+    '#800000', '#008000', '#000080', '#808000', '#800080', '#008080',
+    '#C0C0C0', '#808080', '#FF8080'
+]
+
 # Streamlit app
 def main():
     st.title("Player Performance Comparison")
     st.subheader("PSL Strikers")
 
-    # Input for selecting multiple players
-    selected_players = st.multiselect('Select players to highlight', options=df_ordered['player_name'].unique())
+    # Input for selecting multiple players, limit to 15 players
+    selected_players = st.multiselect('Select up to 15 players to highlight', options=df_ordered['player_name'].unique(), max_selections=15)
 
-    # Generate a color palette for the selected players
-    cmap = cm.get_cmap('tab10', len(selected_players))
-    player_colors = {player: to_hex(cmap(i)) for i, player in enumerate(selected_players)}
+    # Assign colors to selected players
+    player_colors = {player: distinct_colors[i] for i, player in enumerate(selected_players)}
 
     # Creating a Plotly figure
     fig = go.Figure()
@@ -103,5 +106,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
