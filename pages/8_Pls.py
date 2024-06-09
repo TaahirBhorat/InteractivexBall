@@ -87,7 +87,10 @@ def main():
     fig.update_layout(title="Player Performance Comparison",
                       xaxis_title="Standard Deviation from Mean",
                       yaxis=dict(tickmode='array', tickvals=list(range(len(attributes_mean))), ticktext=attributes_mean.index),
-                      height=800, width=1200)
+                      autosize=True,
+                      margin=dict(l=20, r=20, t=50, b=20),
+                      height=None,
+                      width=None)
 
     # Adding category annotations
     y_positions = {attr: idx for idx, attr in enumerate(attributes_mean.index)}
@@ -102,7 +105,7 @@ def main():
                                    font=dict(color=category_colors[category]))
 
     # Display the plot in Streamlit
-    st.plotly_chart(fig)
+    st.plotly_chart(fig, use_container_width=True)
 
 if __name__ == "__main__":
     main()
