@@ -2,7 +2,6 @@ plotly
 pandas
 streamlit
 matplotlib
-os
 pandas 
 numpy 
 statsbombpy
