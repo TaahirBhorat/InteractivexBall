@@ -4,7 +4,19 @@ import plotly.graph_objects as go
 import numpy as np
 from matplotlib import cm
 from matplotlib.colors import to_hex
+logo_url = 'pics/output-onlinepngtools (1).png'
+st.sidebar.image(logo_url)
 
+
+# Display the image and text above the sidebar
+st.sidebar.markdown(
+    """
+    <div style='text-align: center; margin-top: -10px;'>
+        <h2 style='margin-bottom: 0;'>xBall</h2>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 # Load your data
 file_path = 'data/corrected_merged_dataset_with_shot_time.csv'
 df = pd.read_csv(file_path, sep=",")

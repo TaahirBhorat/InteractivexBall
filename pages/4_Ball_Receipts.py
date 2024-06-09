@@ -7,6 +7,19 @@ import matplotlib.patches as patches
 import statsbombpy
 from scipy.ndimage import gaussian_filter
 from statsbombpy import sb
+logo_url = 'pics/output-onlinepngtools (1).png'
+st.sidebar.image(logo_url)
+
+
+# Display the image and text above the sidebar
+st.sidebar.markdown(
+    """
+    <div style='text-align: center; margin-top: -10px;'>
+        <h2 style='margin-bottom: 0;'>xBall</h2>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 if 'tops' not in st.session_state:
     st.session_state['tops'] = ["Big Things Coming"]
 if 'data_loaded' not in st.session_state:

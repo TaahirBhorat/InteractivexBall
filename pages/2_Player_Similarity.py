@@ -2,7 +2,19 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+logo_url = 'pics/output-onlinepngtools (1).png'
+st.sidebar.image(logo_url)
 
+
+# Display the image and text above the sidebar
+st.sidebar.markdown(
+    """
+    <div style='text-align: center; margin-top: -10px;'>
+        <h2 style='margin-bottom: 0;'>xBall</h2>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 # Example DataFrame
 tsne_df = pd.read_csv("data/tsne.csv")
 # Create a color and symbol map for the categories
