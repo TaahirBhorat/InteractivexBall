@@ -9,8 +9,7 @@ st.sidebar.image(logo_url)
 st.sidebar.markdown(
     """
     <div style='text-align: center; margin-top: -10px;'>
-        <h2 style='margin-bottom: 0;'>Player Performance Dashboard</h2>
-        <p style='margin-top: 5px;'>Analyze the performance of PSL strikers based on various metrics.</p>
+        <h2 style='margin-bottom: 0;'>xBall/h2>
     </div>
     """,
     unsafe_allow_html=True
