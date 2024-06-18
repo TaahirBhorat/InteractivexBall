@@ -1160,7 +1160,7 @@ logo_img = mpimg.imread(logo_path)
 imagebox = OffsetImage(logo_img, zoom=0.7)  # Adjust zoom as necessary
 ab = AnnotationBbox(imagebox, (60, 5), frameon=False) 
 # Annotate outside the plot, just above its edges
-ax.annotate('PSL 23/34',
+ax.annotate('PSL 23/24',
             xy=(-1, -2),  # Original position in the plot  # Adjusting the text position above the plot
             ha='center', va='bottom',
             fontsize=40, color='white',
