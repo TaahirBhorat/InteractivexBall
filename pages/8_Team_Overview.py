@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 st.title("PSL 23/24 Team overview")
 data = pd.read_csv("data/leagues/fullseason (1).csv")
 team_options = data["team_name"].unique()
-selected_team = st.selectbox('Select a team to filter by:', team_options)
+selected_team = st.selectbox('Select a team:', team_options)
 def shorten_name(name):
     parts = name.split()
     if len(parts) > 2:
@@ -19,7 +19,7 @@ def shorten_name(name):
     return name
 
 max_games = 28
-selected_games = st.selectbox('Select the number of games to filter by:', list(range(1, 21)))
+selected_games = st.selectbox('Select the minimum number of games:', list(range(1, 21)))
 
 def map_filter_rank(df, min_90s_played):
     # Define the mapping dictionary
