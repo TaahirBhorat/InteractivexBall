@@ -1164,7 +1164,7 @@ ax.annotate('PSL 23/24',
             xy=(-1, -2),  # Original position in the plot  # Adjusting the text position above the plot
             ha='center', va='bottom',
             fontsize=40, color='white',
-            fontname='Futura',
+            fontname='futura',
             arrowprops=dict(facecolor='black', shrink=0.05))
 # Add the logo to the plot
 ax.add_artist(ab)
