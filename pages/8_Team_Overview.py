@@ -21,6 +21,68 @@ def shorten_name(name):
 max_games = 28
 selected_games = st.selectbox('Select the minimum number of games:', list(range(1, 21)))
 
+# def map_filter_rank(df, min_90s_played):
+#     # Define the mapping dictionary
+#     position_map = {
+#         'Center Forward': 'CF',
+#         'Left Wing': 'LW',
+#         'Right Wing': 'RW',
+#         'Left Back': 'LB',
+#         'Right Back': 'RB',
+#         'Center Midfield': 'M',
+#         'Left Midfield': 'LW',
+#         'Left Midfielder': 'LW',
+#         'Right Midfield': 'RW',
+#         'Right Midfielder': 'RW',
+#         'Defensive Midfielder': 'DM',
+#         'Attacking Midfielder': 'M',
+#         'Center Back': 'CB',
+#         'Goalkeeper': 'GK',
+#         'Left Centre Back': 'CB',
+#         'Right Centre Back': 'CB',
+#         'Left Defensive Midfielder': 'DM',
+#         'Right Defensive Midfielder': 'DM',
+#         'Centre Attacking Midfielder': 'M',
+#         'Centre Defensive Midfielder': 'DM',
+#         'Left Wing Back': 'LB',
+#         'Right Wing Back': 'RB',
+#         'Right Forward': 'RW',
+#         'Left Forward': 'LW',
+#         'Centre Forward': 'CF',
+#         'Left Centre Midfielder': 'M',
+#         'Left Centre Forward': 'CF',
+#         'Right Centre Forward': 'CF',
+#         'Right Midfielder': 'RW',
+#         'Right Centre Midfielder': 'M',
+#         'Left Attacking Midfielder': 'M',
+#         'Right Attacking Midfielder': 'M'
+#     }
+
+#     # Map the primary_position to position
+#     df['position'] = df['primary_position'].map(position_map)
+
+#     # Handle any NaN values (if any remain)
+#     df.dropna(subset=['position'], inplace=True)
+
+#     # Filter out players based on min_90s_played
+#     df_filtered = df[df['player_season_90s_played'] >= min_90s_played].copy()
+
+#     # Create the position_rank column based on player_season_obv_90 within each position, except for CF
+#     df_filtered['position_rank'] = df_filtered.groupby('position').apply(
+#         lambda x: x['player_season_np_xg_90'].rank(ascending=False, method='min') if x.name == 'CF'
+#         else x['player_season_obv_90'].rank(ascending=False, method='min')
+#     ).reset_index(level=0, drop=True)
+
+#     # Calculate FIFA_score (1-100 scale) within each position
+#     df_filtered['FIFA_score'] = df_filtered.groupby('position')['position_rank'].transform(
+#         lambda x: 100 * (1 - (x - 1) / (x.max() - 1))
+#     )
+#     df_filtered['player_name'] = df_filtered['player_name'].apply(shorten_name)
+
+#     return df_filtered
+
+import pandas as pd
+
 def map_filter_rank(df, min_90s_played):
     # Define the mapping dictionary
     position_map = {
@@ -52,7 +114,6 @@ def map_filter_rank(df, min_90s_played):
         'Left Centre Midfielder': 'M',
         'Left Centre Forward': 'CF',
         'Right Centre Forward': 'CF',
-        'Right Midfielder': 'RW',
         'Right Centre Midfielder': 'M',
         'Left Attacking Midfielder': 'M',
         'Right Attacking Midfielder': 'M'
@@ -67,9 +128,14 @@ def map_filter_rank(df, min_90s_played):
     # Filter out players based on min_90s_played
     df_filtered = df[df['player_season_90s_played'] >= min_90s_played].copy()
 
-    # Create the position_rank column based on player_season_obv_90 within each position, except for CF
+    # Calculate the sum of player_season_np_xg_90 and player_season_obv_90 for LW and RW
+    df_filtered['sum_x_obv'] = df_filtered['player_season_np_xg_90'] + df_filtered['player_season_obv_90']
+
+    # Create the position_rank column based on player_season_obv_90 within each position, except for CF, LW, and RW
     df_filtered['position_rank'] = df_filtered.groupby('position').apply(
-        lambda x: x['player_season_np_xg_90'].rank(ascending=False, method='min') if x.name == 'CF'
+        lambda x: x['sum_x_obv'].rank(ascending=False, method='min') if x.name in ['LW', 'RW']
+        else x['player_season_np_xg_90'].rank(ascending=False, method='min') if x.name == 'CF'
+         else x['player_season_obv_gk_90'].rank(ascending=False, method='min') if x.name == 'GK'
         else x['player_season_obv_90'].rank(ascending=False, method='min')
     ).reset_index(level=0, drop=True)
 
@@ -77,9 +143,15 @@ def map_filter_rank(df, min_90s_played):
     df_filtered['FIFA_score'] = df_filtered.groupby('position')['position_rank'].transform(
         lambda x: 100 * (1 - (x - 1) / (x.max() - 1))
     )
-    df_filtered['player_name'] = df_filtered['player_name'].apply(shorten_name)
+
+    # Optional: shorten player names if needed (assuming shorten_name function is defined)
+    if 'shorten_name' in globals():
+        df_filtered['player_name'] = df_filtered['player_name'].apply(shorten_name)
 
     return df_filtered
+
+
+
 data = map_filter_rank(data, selected_games)
 dat = data
 team_data = data[data['team_name'] == selected_team] 
