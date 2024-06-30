@@ -1,10 +1,11 @@
+### maybe one plot with all dribbles, and the other one showing most popular zones
+
 import streamlit as st
 import os
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-import statsbombpy
 from scipy.ndimage import gaussian_filter
 from statsbombpy import sb
 logo_url = 'pics/output-onlinepngtools (1).png'
@@ -45,38 +46,39 @@ def create_soccer_pitch_with_boxes(ax, pitch_length=104, pitch_width=68):
     """
     Create a soccer pitch layout with detailed markings (including boxes) on the given Matplotlib axis.
     """
+    pitch_lines = 'lightgrey'
     # Pitch Outline & Centre Line
-    ax.plot([0, 0], [0, pitch_width], color="black") # Left sideline
-    ax.plot([0, pitch_length], [pitch_width, pitch_width], color="black") # Top goal line
-    ax.plot([pitch_length, pitch_length], [pitch_width, 0], color="black") # Right sideline
-    ax.plot([pitch_length, 0], [0, 0], color="black") # Bottom goal line
-    ax.plot([pitch_length / 2, pitch_length / 2], [0, pitch_width], color="black") # Halfway line
+    ax.plot([0, 0], [0, pitch_width], color=pitch_lines) # Left sideline
+    ax.plot([0, pitch_length], [pitch_width, pitch_width], color=pitch_lines) # Top goal line
+    ax.plot([pitch_length, pitch_length], [pitch_width, 0], color=pitch_lines) # Right sideline
+    ax.plot([pitch_length, 0], [0, 0], color=pitch_lines) # Bottom goal line
+    ax.plot([pitch_length / 2, pitch_length / 2], [0, pitch_width], color=pitch_lines) # Halfway line
 
     # Left Penalty Area
     penalty_area_left_x = 16.5
     penalty_area_left_y = 22
-    ax.plot([0, penalty_area_left_x], [pitch_width / 2 + penalty_area_left_y, pitch_width / 2 + penalty_area_left_y], color="black") # Top line
-    ax.plot([penalty_area_left_x, penalty_area_left_x], [pitch_width / 2 + penalty_area_left_y, pitch_width / 2 - penalty_area_left_y], color="black") # Right line
-    ax.plot([penalty_area_left_x, 0], [pitch_width / 2 - penalty_area_left_y, pitch_width / 2 - penalty_area_left_y], color="black") # Bottom line
+    ax.plot([0, penalty_area_left_x], [pitch_width / 2 + penalty_area_left_y, pitch_width / 2 + penalty_area_left_y], color=pitch_lines) # Top line
+    ax.plot([penalty_area_left_x, penalty_area_left_x], [pitch_width / 2 + penalty_area_left_y, pitch_width / 2 - penalty_area_left_y], color=pitch_lines) # Right line
+    ax.plot([penalty_area_left_x, 0], [pitch_width / 2 - penalty_area_left_y, pitch_width / 2 - penalty_area_left_y], color=pitch_lines) # Bottom line
 
     # Right Penalty Area
     penalty_area_right_x = pitch_length - 16.5
-    ax.plot([pitch_length, penalty_area_right_x], [pitch_width / 2 + penalty_area_left_y, pitch_width / 2 + penalty_area_left_y], color="black") # Top line
-    ax.plot([penalty_area_right_x, penalty_area_right_x], [pitch_width / 2 + penalty_area_left_y, pitch_width / 2 - penalty_area_left_y], color="black") # Left line
-    ax.plot([penalty_area_right_x, pitch_length], [pitch_width / 2 - penalty_area_left_y, pitch_width / 2 - penalty_area_left_y], color="black") # Bottom line
+    ax.plot([pitch_length, penalty_area_right_x], [pitch_width / 2 + penalty_area_left_y, pitch_width / 2 + penalty_area_left_y], color=pitch_lines) # Top line
+    ax.plot([penalty_area_right_x, penalty_area_right_x], [pitch_width / 2 + penalty_area_left_y, pitch_width / 2 - penalty_area_left_y], color=pitch_lines) # Left line
+    ax.plot([penalty_area_right_x, pitch_length], [pitch_width / 2 - penalty_area_left_y, pitch_width / 2 - penalty_area_left_y], color=pitch_lines) # Bottom line
 
     # Left 6-yard Box
     six_yard_box_left_x = 5.5
     six_yard_box_left_y = 9.16
-    ax.plot([0, six_yard_box_left_x], [pitch_width / 2 + six_yard_box_left_y, pitch_width / 2 + six_yard_box_left_y], color="black") # Top line
-    ax.plot([six_yard_box_left_x, six_yard_box_left_x], [pitch_width / 2 + six_yard_box_left_y, pitch_width / 2 - six_yard_box_left_y], color="black") # Right line
-    ax.plot([six_yard_box_left_x, 0], [pitch_width / 2 - six_yard_box_left_y, pitch_width / 2 - six_yard_box_left_y], color="black") # Bottom line
+    ax.plot([0, six_yard_box_left_x], [pitch_width / 2 + six_yard_box_left_y, pitch_width / 2 + six_yard_box_left_y], color=pitch_lines) # Top line
+    ax.plot([six_yard_box_left_x, six_yard_box_left_x], [pitch_width / 2 + six_yard_box_left_y, pitch_width / 2 - six_yard_box_left_y], color=pitch_lines) # Right line
+    ax.plot([six_yard_box_left_x, 0], [pitch_width / 2 - six_yard_box_left_y, pitch_width / 2 - six_yard_box_left_y], color=pitch_lines) # Bottom line
 
     # Right 6-yard Box
     six_yard_box_right_x = pitch_length - 5.5
-    ax.plot([pitch_length, six_yard_box_right_x], [pitch_width / 2 + six_yard_box_left_y, pitch_width / 2 + six_yard_box_left_y], color="black") # Top line
-    ax.plot([six_yard_box_right_x, six_yard_box_right_x], [pitch_width / 2 + six_yard_box_left_y, pitch_width / 2 - six_yard_box_left_y], color="black") # Left line
-    ax.plot([six_yard_box_right_x, pitch_length], [pitch_width / 2 - six_yard_box_left_y, pitch_width / 2 - six_yard_box_left_y], color="black") # Bottom line
+    ax.plot([pitch_length, six_yard_box_right_x], [pitch_width / 2 + six_yard_box_left_y, pitch_width / 2 + six_yard_box_left_y], color=pitch_lines) # Top line
+    ax.plot([six_yard_box_right_x, six_yard_box_right_x], [pitch_width / 2 + six_yard_box_left_y, pitch_width / 2 - six_yard_box_left_y], color=pitch_lines) # Left line
+    ax.plot([six_yard_box_right_x, pitch_length], [pitch_width / 2 - six_yard_box_left_y, pitch_width / 2 - six_yard_box_left_y], color=pitch_lines) # Bottom line
 
     return ax
 
@@ -88,6 +90,9 @@ def plot_heatmap_with_pitch(heatmap, title, grid_size_x, grid_size_y, pitch_leng
     fig, ax = plt.subplots(figsize=(30, 20))
     ax = create_soccer_pitch_with_boxes(ax, pitch_length, pitch_width)
 
+    # Set dark background for the figure and axis
+    fig.patch.set_facecolor('black')
+    #ax.set_facecolor('black')
     # Rescale the heatmap to the size of the pitch
     heatmap_rescaled = np.zeros((grid_size_y, grid_size_x))
     for i in range(grid_size_y):
@@ -101,88 +106,121 @@ def plot_heatmap_with_pitch(heatmap, title, grid_size_x, grid_size_y, pitch_leng
     
     # Plot the heatmap
     ax.imshow(np.flipud(heatmap_rescaled), extent=(0, pitch_length, 0, pitch_width), interpolation='nearest', cmap='magma', alpha=0.8)
-    ax.set_title(title)
-    ax.set_xlabel('Pitch Length')
-    ax.set_ylabel('Pitch Width')
+    #ax.set_title(title)
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.set_xticklabels([])
+    ax.set_yticklabels([])
+    ax.set_xlabel('')
+    ax.set_ylabel('')
     return fig 
 
-def plot_dribbles_on_pitch(data):
+def plot_dribbles_on_pitch(data, min_dribble_length):
     import matplotlib.pyplot as plt
     import numpy as np
-    from matplotlib.patches import Arc, Rectangle
+    from matplotlib.patches import Rectangle
 
     # Filter out dribbles and successful dribbles
     dribbles = data[(data['type'] == 'Carry')]
+     # Calculate dribble lengths
+    dribbles['dribble_length'] = np.sqrt((dribbles['carry_end_x'] - dribbles['start_x'])**2 + (dribbles['carry_end_y'] - dribbles['start_y'])**2)
+
+    # Filter dribbles based on minimum dribble length
+    dribbles = dribbles[dribbles['dribble_length'] >= min_dribble_length]
 
     # Define the soccer pitch dimensions (105x68 meters)
     pitch_length = 104
     pitch_width = 68
 
-    # Create a grid for heatmap
-    grid_size = 5
+    # Increase the grid size
+    grid_size = 10
     x_bins = int(pitch_length / grid_size)
     y_bins = int(pitch_width / grid_size)
 
     # Create a heatmap for the end points of successful dribbles
     heatmap, xedges, yedges = np.histogram2d(dribbles['carry_end_x'], dribbles['carry_end_y'], bins=[x_bins, y_bins])
 
-    # Find the cell with the highest number of dribbles
-    max_dribbles_index = np.unravel_index(heatmap.argmax(), heatmap.shape)
-    max_dribbles_zone = (xedges[max_dribbles_index[0]], yedges[max_dribbles_index[1]])
-
-    # Filter dribbles that ended in the zone with the highest number of dribbles
-    zone_dribbles = dribbles[(dribbles['carry_end_x'] >= max_dribbles_zone[0]) & (dribbles['carry_end_x'] < max_dribbles_zone[0] + grid_size) &
-                             (dribbles['carry_end_y'] >= max_dribbles_zone[1]) & (dribbles['carry_end_y'] < max_dribbles_zone[1] + grid_size)]
+    # Find the indices of the top 3 cells with the highest number of dribbles
+    top_3_indices = np.dstack(np.unravel_index(np.argsort(heatmap.ravel())[-3:], heatmap.shape))[0]
 
     # Plotting these dribbles on the soccer pitch
     fig, ax = plt.subplots(figsize=(10, 6.8))
+    fig.patch.set_facecolor('black')
+    
+    ax.set_facecolor('#383434')
+    pitch_lines = 'lightgrey'
 
-     # Pitch Outline & Centre Line
-    ax.plot([0, 0], [0, pitch_width], color="black") # Left sideline
-    ax.plot([0, pitch_length], [pitch_width, pitch_width], color="black") # Top goal line
-    ax.plot([pitch_length, pitch_length], [pitch_width, 0], color="black") # Right sideline
-    ax.plot([pitch_length, 0], [0, 0], color="black") # Bottom goal line
-    ax.plot([pitch_length / 2, pitch_length / 2], [0, pitch_width], color="black") # Halfway line
+    # Pitch Outline & Centre Line
+    ax.plot([0, 0], [0, pitch_width], color=pitch_lines) # Left sideline
+    ax.plot([0, pitch_length], [pitch_width, pitch_width], color=pitch_lines) # Top goal line
+    ax.plot([pitch_length, pitch_length], [pitch_width, 0], color=pitch_lines) # Right sideline
+    ax.plot([pitch_length, 0], [0, 0], color=pitch_lines) # Bottom goal line
+    ax.plot([pitch_length / 2, pitch_length / 2], [0, pitch_width], color=pitch_lines) # Halfway line
 
     # Left Penalty Area
     penalty_area_left_x = 16.5
     penalty_area_left_y = 22
-    ax.plot([0, penalty_area_left_x], [pitch_width / 2 + penalty_area_left_y, pitch_width / 2 + penalty_area_left_y], color="black") # Top line
-    ax.plot([penalty_area_left_x, penalty_area_left_x], [pitch_width / 2 + penalty_area_left_y, pitch_width / 2 - penalty_area_left_y], color="black") # Right line
-    ax.plot([penalty_area_left_x, 0], [pitch_width / 2 - penalty_area_left_y, pitch_width / 2 - penalty_area_left_y], color="black") # Bottom line
+    ax.plot([0, penalty_area_left_x], [pitch_width / 2 + penalty_area_left_y, pitch_width / 2 + penalty_area_left_y], color=pitch_lines) # Top line
+    ax.plot([penalty_area_left_x, penalty_area_left_x], [pitch_width / 2 + penalty_area_left_y, pitch_width / 2 - penalty_area_left_y], color=pitch_lines) # Right line
+    ax.plot([penalty_area_left_x, 0], [pitch_width / 2 - penalty_area_left_y, pitch_width / 2 - penalty_area_left_y], color=pitch_lines) # Bottom line
 
     # Right Penalty Area
     penalty_area_right_x = pitch_length - 16.5
-    ax.plot([pitch_length, penalty_area_right_x], [pitch_width / 2 + penalty_area_left_y, pitch_width / 2 + penalty_area_left_y], color="black") # Top line
-    ax.plot([penalty_area_right_x, penalty_area_right_x], [pitch_width / 2 + penalty_area_left_y, pitch_width / 2 - penalty_area_left_y], color="black") # Left line
-    ax.plot([penalty_area_right_x, pitch_length], [pitch_width / 2 - penalty_area_left_y, pitch_width / 2 - penalty_area_left_y], color="black") # Bottom line
+    ax.plot([pitch_length, penalty_area_right_x], [pitch_width / 2 + penalty_area_left_y, pitch_width / 2 + penalty_area_left_y], color=pitch_lines) # Top line
+    ax.plot([penalty_area_right_x, penalty_area_right_x], [pitch_width / 2 + penalty_area_left_y, pitch_width / 2 - penalty_area_left_y], color=pitch_lines) # Left line
+    ax.plot([penalty_area_right_x, pitch_length], [pitch_width / 2 - penalty_area_left_y, pitch_width / 2 - penalty_area_left_y], color=pitch_lines) # Bottom line
 
     # Left 6-yard Box
     six_yard_box_left_x = 5.5
     six_yard_box_left_y = 9.16
-    ax.plot([0, six_yard_box_left_x], [pitch_width / 2 + six_yard_box_left_y, pitch_width / 2 + six_yard_box_left_y], color="black") # Top line
-    ax.plot([six_yard_box_left_x, six_yard_box_left_x], [pitch_width / 2 + six_yard_box_left_y, pitch_width / 2 - six_yard_box_left_y], color="black") # Right line
-    ax.plot([six_yard_box_left_x, 0], [pitch_width / 2 - six_yard_box_left_y, pitch_width / 2 - six_yard_box_left_y], color="black") # Bottom line
+    ax.plot([0, six_yard_box_left_x], [pitch_width / 2 + six_yard_box_left_y, pitch_width / 2 + six_yard_box_left_y], color=pitch_lines) # Top line
+    ax.plot([six_yard_box_left_x, six_yard_box_left_x], [pitch_width / 2 + six_yard_box_left_y, pitch_width / 2 - six_yard_box_left_y], color=pitch_lines) # Right line
+    ax.plot([six_yard_box_left_x, 0], [pitch_width / 2 - six_yard_box_left_y, pitch_width / 2 - six_yard_box_left_y], color=pitch_lines) # Bottom line
 
     # Right 6-yard Box
     six_yard_box_right_x = pitch_length - 5.5
-    ax.plot([pitch_length, six_yard_box_right_x], [pitch_width / 2 + six_yard_box_left_y, pitch_width / 2 + six_yard_box_left_y], color="black") # Top line
-    ax.plot([six_yard_box_right_x, six_yard_box_right_x], [pitch_width / 2 + six_yard_box_left_y, pitch_width / 2 - six_yard_box_left_y], color="black") # Left line
-    ax.plot([six_yard_box_right_x, pitch_length], [pitch_width / 2 - six_yard_box_left_y, pitch_width / 2 - six_yard_box_left_y], color="black") # Bottom line
+    ax.plot([pitch_length, six_yard_box_right_x], [pitch_width / 2 + six_yard_box_left_y, pitch_width / 2 + six_yard_box_left_y], color=pitch_lines) # Top line
+    ax.plot([six_yard_box_right_x, six_yard_box_right_x], [pitch_width / 2 + six_yard_box_left_y, pitch_width / 2 - six_yard_box_left_y], color=pitch_lines) # Left line
+    ax.plot([six_yard_box_right_x, pitch_length], [pitch_width / 2 - six_yard_box_left_y, pitch_width / 2 - six_yard_box_left_y], color=pitch_lines) # Bottom line
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.set_xticklabels([])
+    ax.set_yticklabels([])
+    ax.set_xlabel('')
+    ax.set_ylabel('')
 
-    # Plot the dribbles
-    for index, row in zone_dribbles.iterrows():
-        plt.plot([row['start_x'], row['carry_end_x']], [row['start_y'], row['carry_end_y']], color='blue')
-        plt.scatter(row['carry_end_x'], row['carry_end_y'], color='red')
+    # Highlight the top 3 zones and plot dribbles
+    colors = ['red', 'green', 'blue']
+    for idx, (x_idx, y_idx) in enumerate(top_3_indices):
+        zone_x = xedges[x_idx]
+        zone_y = yedges[y_idx]
 
-    # Highlight the zone with the most dribbles
-    rect = Rectangle((max_dribbles_zone[0], max_dribbles_zone[1]), grid_size, grid_size, linewidth=1, edgecolor='r', facecolor='none')
-    ax.add_patch(rect)
+        # Ensure the box does not go over the edge of the pitch
+        if zone_x + grid_size > pitch_length:
+            zone_x = pitch_length - grid_size
+        if zone_y + grid_size > pitch_width:
+            zone_y = pitch_width - grid_size
 
-    plt.title('Dribbles Ending in the Most Active Zone')
+        # Filter dribbles that ended in the current top zone
+        zone_dribbles = dribbles[(dribbles['carry_end_x'] >= zone_x) & (dribbles['carry_end_x'] < zone_x + grid_size) &
+                                 (dribbles['carry_end_y'] >= zone_y) & (dribbles['carry_end_y'] < zone_y + grid_size)]
+
+        # Plot the dribbles in the current top zone
+        for _, row in zone_dribbles.iterrows():
+            #plt.plot([row['start_x'], row['carry_end_x']], [row['start_y'], row['carry_end_y']], color=colors[idx])
+            plt.arrow(row['start_x'], row['start_y'], row['carry_end_x'] - row['start_x'], row['carry_end_y'] - row['start_y'], color=colors[idx], head_width=1, head_length=1, length_includes_head=True)
+            plt.scatter(row['carry_end_x'], row['carry_end_y'], color=colors[idx], alpha=0.4)
+
+        # Highlight the current top zone
+        rect = Rectangle((zone_x, zone_y), grid_size, grid_size, linewidth=1, edgecolor=colors[idx], facecolor='none')
+        ax.add_patch(rect)
+
+    plt.title('Dribbles Ending in the Top 3 Most Active Zones')
     plt.xlabel('Length of the pitch (meters)')
     plt.ylabel('Width of the pitch (meters)')
     return fig
+
+
 
 def topXdribblers(country, league, season, x):
     '''takes in country name, league name, and season(string) name, 
@@ -329,18 +367,14 @@ files = os.listdir(data_folder)
 st.subheader('Choose Base Player')
 selected_file = st.selectbox("Select a League", files)
 df = pd.read_csv(os.path.join(data_folder, selected_file), low_memory=False)
-# df = pd.read_csv('data/England_Premier League_2324.csv', low_memory=False)
+# df = pd.read_csv('data/leagues/South Africa_PSL_2324.csv', low_memory=False)
 # Selecting the players
 player_choices = df['player'].unique()
 selected_player = st.selectbox("Select a Player", player_choices)
-
+#selected_player = 'Kimvuidi Keikie Karim'
 # Filter the original DataFrame based on both league and player
 # selected_player = 'Jeremy Doku'
 data_doku = df[(df['player'] == selected_player) & (df['type']=='Carry')]
-
-# data_doku = player_df[player_df.type_name =="dribble"] spadl
-# data_doku = player_df[player_df.type =="carry"]
-
 
 grid_size_x = 16
 grid_size_y = 11
@@ -369,9 +403,9 @@ with col2:
 
 
 data = data_doku
-
+min_length1 = st.slider('Minimum Dribble Length', min_value=0, max_value=100, key=1)
 #plot dribbles on the pitch
-plt3 = plot_dribbles_on_pitch(data)
+plt3 = plot_dribbles_on_pitch(data, min_dribble_length=min_length1)
 st.pyplot(plt3)
 
 
@@ -451,7 +485,8 @@ if st.session_state['data_loaded']:
     with coly:
         st.pyplot(plt1_2)
     dat = data_2
-    plt1_3 = plot_dribbles_on_pitch(dat)
+    min_length = st.slider('Minimum Dribble Length', min_value=0, max_value=100, key=2)
+    plt1_3 = plot_dribbles_on_pitch(dat, min_dribble_length=min_length)
     st.pyplot(plt1_3)
 
 
