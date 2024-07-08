@@ -28,7 +28,7 @@ selected_games = st.selectbox('Select the minimum number of games:', list(range(
 # def map_filter_rank(df, min_90s_played):
 #     # Define the mapping dictionary
 #     position_map = {
-#         'Center Forward': 'CF',
+#         'Center Forward': 'CF', 
 #         'Left Wing': 'LW',
 #         'Right Wing': 'RW',
 #         'Left Back': 'LB',
