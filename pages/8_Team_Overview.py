@@ -1225,7 +1225,7 @@ cbar.set_label('Per-Position Quality in League', color='white')
 cbar.ax.xaxis.set_tick_params(color='white')
 
 lab_dict = {'fontsize': 15}
-#cbar.ax.set_xticklabels([0,10, 20, 30, 40, 50, 60, 70, 80, 90, 100], color = 'white',fontdict =lab_dict)
+cbar.ax.set_xticklabels('')
 
 # Set the label color to white
 cbar.ax.set_xlabel('Per Position Quality in League', color='lightgrey', font='futura', fontsize=35)
