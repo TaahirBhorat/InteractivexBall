@@ -2,9 +2,13 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import mplsoccer
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as pl
+data = pd.read_csv("data/leagues/fullseason (1).csv").iloc[:,1:]
+data['player_season_obv_shot_90'].fillna(0, inplace=True)
+data['player_season_obv_90'] = data['player_season_obv_90']  - data['player_season_obv_shot_90']
+
 st.title("PSL 23/24 Team overview")
-data = pd.read_csv("data/leagues/fullseason (1).csv")
+
 team_options = data["team_name"].unique()
 selected_team = st.selectbox('Select a team:', team_options)
 def shorten_name(name):
@@ -24,7 +28,7 @@ selected_games = st.selectbox('Select the minimum number of games:', list(range(
 # def map_filter_rank(df, min_90s_played):
 #     # Define the mapping dictionary
 #     position_map = {
-#         'Center Forward': 'CF',
+#         'Center Forward': 'CF', 
 #         'Left Wing': 'LW',
 #         'Right Wing': 'RW',
 #         'Left Back': 'LB',
@@ -106,8 +110,8 @@ def map_filter_rank(df, min_90s_played):
         'Right Defensive Midfielder': 'DM',
         'Centre Attacking Midfielder': 'M',
         'Centre Defensive Midfielder': 'DM',
-        'Left Wing Back': 'LB',
-        'Right Wing Back': 'RB',
+        'Left Wing Back': 'LW',
+        'Right Wing Back': 'RW',
         'Right Forward': 'RW',
         'Left Forward': 'LW',
         'Centre Forward': 'CF',
@@ -134,7 +138,7 @@ def map_filter_rank(df, min_90s_played):
     # Create the position_rank column based on player_season_obv_90 within each position, except for CF, LW, and RW
     df_filtered['position_rank'] = df_filtered.groupby('position').apply(
         lambda x: x['sum_x_obv'].rank(ascending=False, method='min') if x.name in ['LW', 'RW']
-        else x['player_season_np_xg_90'].rank(ascending=False, method='min') if x.name == 'CF'
+        else x['sum_x_obv'].rank(ascending=False, method='min') if x.name == 'CF'
          else x['player_season_obv_gk_90'].rank(ascending=False, method='min') if x.name == 'GK'
         else x['player_season_obv_90'].rank(ascending=False, method='min')
     ).reset_index(level=0, drop=True)
@@ -1219,10 +1223,12 @@ cbar.set_label('Per-Position Quality in League', color='white')
 
 # Set the color of the tick labels to white and hide the tick values
 cbar.ax.xaxis.set_tick_params(color='white')
-cbar.ax.set_xticklabels([])
+
+lab_dict = {'fontsize': 15}
+cbar.ax.set_xticklabels('')
 
 # Set the label color to white
-cbar.ax.set_xlabel('Per Position Quality in League', color='lightgrey', font='futura', fontsize=25)
+cbar.ax.set_xlabel('Per Position Quality in League', color='lightgrey', font='futura', fontsize=35)
 logo_path = logo_paths[selected_team]
 
 # Read the logo image
