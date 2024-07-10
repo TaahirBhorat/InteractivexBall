@@ -221,7 +221,6 @@ def plot_dribbles_on_pitch(data, min_dribble_length):
     return fig
 
 
-
 def topXdribblers(country, league, season, x):
     '''takes in country name, league name, and season(string) name, 
     and X to output the top X d&c players in the league'''
