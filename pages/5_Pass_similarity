@@ -1,13 +1,15 @@
-### maybe one plot with all dribbles, and the other one showing most popular zones
-
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.patches import Rectangle
 import streamlit as st
 import os
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from scipy.ndimage import gaussian_filter
 from statsbombpy import sb
+creds = {"user":"daylesolomon@gmail.com", "passwd": "qIRf28g8"}
+
 logo_url = 'pics/output-onlinepngtools (1).png'
 st.sidebar.image(logo_url)
 
@@ -115,18 +117,15 @@ def plot_heatmap_with_pitch(heatmap, title, grid_size_x, grid_size_y, pitch_leng
     ax.set_ylabel('')
     return fig 
 
-def plot_dribbles_on_pitch(data, min_dribble_length):
-    import matplotlib.pyplot as plt
-    import numpy as np
-    from matplotlib.patches import Rectangle
+def plot_passes_on_pitch(data, min_pass_length):
 
-    # Filter out dribbles and successful dribbles
-    dribbles = data[(data['type'] == 'Carry')]
+    # Filter out Passes and successful dribbles
+    passes = data[(data['type'] == 'Pass')]
      # Calculate dribble lengths
-    dribbles['dribble_length'] = np.sqrt((dribbles['carry_end_x'] - dribbles['start_x'])**2 + (dribbles['carry_end_y'] - dribbles['start_y'])**2)
+    passes['pass_length'] = np.sqrt((passes['pass_end_x'] - passes['start_x'])**2 + (passes['pass_end_y'] - passes['start_y'])**2)
 
-    # Filter dribbles based on minimum dribble length
-    dribbles = dribbles[dribbles['dribble_length'] >= min_dribble_length]
+    # Filter passes based on minimum dribble length
+    passes = passes[passes['pass_length'] >= min_pass_length]
 
     # Define the soccer pitch dimensions (105x68 meters)
     pitch_length = 104
@@ -138,12 +137,12 @@ def plot_dribbles_on_pitch(data, min_dribble_length):
     y_bins = int(pitch_width / grid_size)
 
     # Create a heatmap for the end points of successful dribbles
-    heatmap, xedges, yedges = np.histogram2d(dribbles['carry_end_x'], dribbles['carry_end_y'], bins=[x_bins, y_bins])
+    heatmap, xedges, yedges = np.histogram2d(passes['pass_end_x'], passes['pass_end_y'], bins=[x_bins, y_bins])
 
-    # Find the indices of the top 3 cells with the highest number of dribbles
+    # Find the indices of the top 3 cells with the highest number of passes
     top_3_indices = np.dstack(np.unravel_index(np.argsort(heatmap.ravel())[-3:], heatmap.shape))[0]
 
-    # Plotting these dribbles on the soccer pitch
+    # Plotting these passes on the soccer pitch
     fig, ax = plt.subplots(figsize=(10, 6.8))
     fig.patch.set_facecolor('black')
     
@@ -189,7 +188,7 @@ def plot_dribbles_on_pitch(data, min_dribble_length):
     ax.set_xlabel('')
     ax.set_ylabel('')
 
-    # Highlight the top 3 zones and plot dribbles
+    # Highlight the top 3 zones and plot passes
     colors = ['red', 'green', 'blue']
     for idx, (x_idx, y_idx) in enumerate(top_3_indices):
         zone_x = xedges[x_idx]
@@ -202,26 +201,26 @@ def plot_dribbles_on_pitch(data, min_dribble_length):
             zone_y = pitch_width - grid_size
 
         # Filter dribbles that ended in the current top zone
-        zone_dribbles = dribbles[(dribbles['carry_end_x'] >= zone_x) & (dribbles['carry_end_x'] < zone_x + grid_size) &
-                                 (dribbles['carry_end_y'] >= zone_y) & (dribbles['carry_end_y'] < zone_y + grid_size)]
+        zone_passes = passes[(passes['pass_end_x'] >= zone_x) & (passes['pass_end_x'] < zone_x + grid_size) &
+                                 (passes['pass_end_y'] >= zone_y) & (passes['pass_end_y'] < zone_y + grid_size)]
 
-        # Plot the dribbles in the current top zone
-        for _, row in zone_dribbles.iterrows():
-            #plt.plot([row['start_x'], row['carry_end_x']], [row['start_y'], row['carry_end_y']], color=colors[idx])
-            plt.arrow(row['start_x'], row['start_y'], row['carry_end_x'] - row['start_x'], row['carry_end_y'] - row['start_y'], color=colors[idx], head_width=1, head_length=1, length_includes_head=True)
-            plt.scatter(row['carry_end_x'], row['carry_end_y'], color=colors[idx], alpha=0.4)
+        # Plot the passes in the current top zone
+        for _, row in zone_passes.iterrows():
+            #plt.plot([row['start_x'], row['pass_end_x']], [row['start_y'], row['pass_end_y']], color=colors[idx])
+            plt.arrow(row['start_x'], row['start_y'], row['pass_end_x'] - row['start_x'], row['pass_end_y'] - row['start_y'], color=colors[idx], head_width=1, head_length=1, length_includes_head=True)
+            plt.scatter(row['pass_end_x'], row['pass_end_y'], color=colors[idx], alpha=0.4)
 
         # Highlight the current top zone
         rect = Rectangle((zone_x, zone_y), grid_size, grid_size, linewidth=1, edgecolor=colors[idx], facecolor='none')
         ax.add_patch(rect)
 
-    plt.title('Dribbles Ending in the Top 3 Most Active Zones')
+    plt.title('Passes Ending in the Top 3 Most Active Zones')
     plt.xlabel('Length of the pitch (meters)')
     plt.ylabel('Width of the pitch (meters)')
     return fig
 
 
-def topXdribblers(country, league, season, x):
+def topXpassers(country, league, season, x):
     '''takes in country name, league name, and season(string) name, 
     and X to output the top X d&c players in the league'''
 
@@ -232,14 +231,9 @@ def topXdribblers(country, league, season, x):
     season_id = league['season_id'].iloc[0]
     player_season = sb.player_season_stats(competition_id=comp_id, season_id=season_id,creds=creds)
 
-    names_obv = player_season[player_season['player_season_minutes']>600].sort_values('player_season_obv_dribble_carry_90', ascending=False)[["player_name",'player_season_obv_dribble_carry_90']].reset_index(drop=True)[['player_name','player_season_obv_dribble_carry_90']]
+    names_obv = player_season[player_season['player_season_minutes']>600].sort_values('player_season_obv_pass_90', ascending=False)[["player_name",'player_season_obv_pass_90']].reset_index(drop=True)[['player_name','player_season_obv_pass_90']]
     return names_obv.iloc[0:x,:]
 
-# List of file names
-data_folder = 'data/leagues'
-
-# List all files in the data folder
-file_names = os.listdir(data_folder)
 
 # Adjusted function to match file names
 def match_to_file(row, file_names):
@@ -261,25 +255,25 @@ def match_to_file(row, file_names):
     return pattern in file_names
 
 
-def compareDribbleHeats(country, league, season, x, event_data, comp_start, comp_end):
+def comparePassHeats(country, league, season, x, event_data, comp_start, comp_end):
    
     '''x is the number of top d&c players to compare to the target player;
     event_data is the event_data of the players;
     comp_start and comp_end accept ⁠⁠ output, of Doku in this case'''
 
-    ns = topXdribblers(country, league, season, x)
+    ns = topXpassers(country, league, season, x)
     data = {
     'country': [country] * len(ns),
     'league': [league] * len(ns),
     'season': [season] * len(ns),
     'player_names': ns['player_name'],
-    'D&C': ns['player_season_obv_dribble_carry_90']
+    'D&C': ns['player_season_obv_pass_90']
     }
     df = pd.DataFrame(data)
-    # filter out non-dribblers
+    # filter out non-Passers
     event_data = event_data[event_data['player'].isin(df['player_names'].values)]
-    event_data = event_data[event_data['type']=='Carry']
-    subset_event_d = event_data[["player","start_x","start_y","carry_end_x","carry_end_y"]]
+    event_data = event_data[event_data['type']=='Pass']
+    subset_event_d = event_data[["player","start_x","start_y","pass_end_x","pass_end_y"]]
     names = subset_event_d["player"].unique()
 
     # create empty dataframe to store the dribbling intensities of each player
@@ -292,7 +286,7 @@ def compareDribbleHeats(country, league, season, x, event_data, comp_start, comp
         flat_start = heatmap_start.flatten()
         
         # Adjust data for end points
-        data_end = temp.assign(start_x=temp['carry_end_x'], start_y=temp['carry_end_y'])
+        data_end = temp.assign(start_x=temp['pass_end_x'], start_y=temp['pass_end_y'])
         heatmap_end = calculate_heatmap_frequencies(data_end, 16, 11)
         flat_end = heatmap_end.flatten()
 
@@ -370,10 +364,10 @@ df = pd.read_csv(os.path.join(data_folder, selected_file), low_memory=False)
 # Selecting the players
 player_choices = df['player'].unique()
 selected_player = st.selectbox("Select a Player", player_choices)
-#selected_player = 'Kimvuidi Keikie Karim'
+#selected_player = 'Jayden Adams'
 # Filter the original DataFrame based on both league and player
 # selected_player = 'Jeremy Doku'
-data_doku = df[(df['player'] == selected_player) & (df['type']=='Carry')]
+data_doku = df[(df['player'] == selected_player) & (df['type']=='Pass')]
 
 grid_size_x = 16
 grid_size_y = 11
@@ -381,7 +375,7 @@ grid_size_y = 11
 heatmap_doku_start = calculate_heatmap_frequencies(data_doku, grid_size_x, grid_size_y)
 
 # Adjust data for end points
-data_doku_end = data_doku.assign(start_x=data_doku['carry_end_x'], start_y=data_doku['carry_end_y'])
+data_doku_end = data_doku.assign(start_x=data_doku['pass_end_x'], start_y=data_doku['pass_end_y'])
 
 heatmap_doku_end = calculate_heatmap_frequencies(data_doku_end, grid_size_x, grid_size_y)
 plt1 = plot_heatmap_with_pitch(heatmap_doku_start, '', grid_size_x, grid_size_y)
@@ -404,12 +398,12 @@ with col2:
 data = data_doku
 min_length1 = st.slider('Minimum Dribble Length', min_value=0, max_value=100, key=1)
 #plot dribbles on the pitch
-plt3 = plot_dribbles_on_pitch(data, min_dribble_length=min_length1)
+plt3 = plot_passes_on_pitch(data, min_pass_length=min_length1)
 st.pyplot(plt3)
 
 
 
-def display_top_dribblers():
+def display_top_passers():
     if 'tops' in st.session_state and st.session_state['data_loaded']:
         st.write(pd.DataFrame(st.session_state['tops']))
 
@@ -418,7 +412,7 @@ def display_top_dribblers():
 creds = {"user":"daylesolomon@gmail.com", "passwd": "qIRf28g8"}
 all_sb_leagues = sb.competitions(creds=creds)
 # Apply the function across each row of the DataFrame
-mask = all_sb_leagues.apply(lambda row: match_to_file(row, file_names), axis=1)
+mask = all_sb_leagues.apply(lambda row: match_to_file(row, files), axis=1)
 # Filter the DataFrame based on the mask
 all_sb_leagues = all_sb_leagues[mask]
 leagues = all_sb_leagues['competition_name'].unique()
@@ -459,35 +453,35 @@ df_event = pd.read_csv(os.path.join(data_folder, matching_event), low_memory=Fal
 
 
 
-if st.button('Show Top Dribblers'):
+if st.button('Show Top Passers'):
     with st.spinner('Fetching data...'):
-        ns_array = compareDribbleHeats(country, selected_l, season, 20, df_event, heatmap_doku_start, heatmap_doku_end)
+        ns_array = comparePassHeats(country, selected_l, season, 20, df_event, heatmap_doku_start, heatmap_doku_end)
         st.session_state['tops'] = ns_array
         st.session_state['data_loaded'] = True
-display_top_dribblers()
+display_top_passers()
 
 if st.session_state['data_loaded']:
     st.subheader('Choose Player to Compare')
     Player2 = st.selectbox("Select a player", st.session_state['tops'])
-    data_2 = df_event[ (df_event['player'] == Player2) & (df_event['type'] == 'Carry')]
+    data_2 = df_event[ (df_event['player'] == Player2) & (df_event['type'] == 'Pass')]
     #data_2 = player_df_2[player_df_2.type_name =="dribble"]
     grid_size_x = 16
     grid_size_y = 11
     heatmap_start = calculate_heatmap_frequencies(data_2, grid_size_x, grid_size_y)
-    data_end = data_2.assign(start_x=data_2['carry_end_x'], start_y=data_2['carry_end_y'])
+    data_end = data_2.assign(start_x=data_2['pass_end_x'], start_y=data_2['pass_end_y'])
     heatmap_end = calculate_heatmap_frequencies(data_end, grid_size_x, grid_size_y)
     plt1_1 = plot_heatmap_with_pitch(heatmap_start, '', grid_size_x, grid_size_y)
     plt1_2 = plot_heatmap_with_pitch(heatmap_end, '', grid_size_x, grid_size_y)
     colx, coly = st.columns(2)
     with colx:
-        st.header("Starting Positions of Dribbles")
+        st.header("Starting Positions of Passes")
         st.pyplot(plt1_1)
     with coly:
-        st.header("Ending Positions of Dribbles")
+        st.header("Ending Positions of Passes")
         st.pyplot(plt1_2)
     dat = data_2
-    min_length = st.slider('Minimum Dribble Length', min_value=0, max_value=100, key=2)
-    plt1_3 = plot_dribbles_on_pitch(dat, min_dribble_length=min_length)
+    min_length = st.slider('Minimum Pass Length', min_value=0, max_value=100, key=2)
+    plt1_3 = plot_passes_on_pitch(dat, min_pass_length=min_length)
     st.pyplot(plt1_3)
 
 
