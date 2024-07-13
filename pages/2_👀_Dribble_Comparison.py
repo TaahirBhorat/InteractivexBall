@@ -465,6 +465,7 @@ st.subheader('Choose Base Player')
 selected_file = st.selectbox("Select a League", files)
 df = pd.read_csv(os.path.join(data_folder, selected_file), low_memory=False)
 # df = pd.read_csv('data/leagues/South Africa_PSL_2324.csv', low_memory=False)
+
 # Selecting the players
 player_choices = df['player'].unique()
 selected_player = st.selectbox("Select a Player", player_choices)
