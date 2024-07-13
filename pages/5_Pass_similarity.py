@@ -222,18 +222,69 @@ def plot_passes_on_pitch(data, min_pass_length):
 
 def topXpassers(country, league, season, x):
     '''takes in country name, league name, and season(string) name, 
-    and X to output the top X d&c players in the league'''
+    and X to output the top X pass players in the league'''
 
     filtered_comps = sb.competitions(creds=creds)
     league = filtered_comps[(filtered_comps['country_name']==country) & (filtered_comps['competition_name']==league) &
                 (filtered_comps['season_name']==season)]
     comp_id = league['competition_id'].iloc[0]
     season_id = league['season_id'].iloc[0]
-    player_season = sb.player_season_stats(competition_id=comp_id, season_id=season_id,creds=creds)
-
+    player_season = sb.player_season_stats(competition_id=comp_id, season_id=season_id,creds=creds)[["player_name",'player_season_obv_pass_90','player_season_minutes','primary_position']]
+    player_season['primary_position'] = player_season['primary_position'].map(position_map).fillna('none')
+    player_season['primary_position'] = player_season['primary_position'].map(second_position_map).fillna('none')    
+    player_season = player_season[player_season['primary_position']==player_position]
     names_obv = player_season[player_season['player_season_minutes']>600].sort_values('player_season_obv_pass_90', ascending=False)[["player_name",'player_season_obv_pass_90']].reset_index(drop=True)[['player_name','player_season_obv_pass_90']]
     return names_obv.iloc[0:x,:]
 
+
+position_map = {
+        'Center Forward': 'CF',
+        'Left Wing': 'LW',
+        'Right Wing': 'RW',
+        'Left Back': 'LB',
+        'Right Back': 'RB',
+        'Center Midfield': 'M',
+        'Left Midfield': 'LW',
+        'Left Midfielder': 'LW',
+        'Right Midfield': 'RW',
+        'Right Midfielder': 'RW',
+        'Defensive Midfielder': 'DM',
+        'Attacking Midfielder': 'M',
+        'Center Back': 'CB',
+        'Goalkeeper': 'GK',
+        'Left Centre Back': 'CB',
+        'Right Centre Back': 'CB',
+        'Left Defensive Midfielder': 'DM',
+        'Right Defensive Midfielder': 'DM',
+        'Centre Attacking Midfielder': 'M',
+        'Centre Defensive Midfielder': 'DM',
+        'Left Wing Back': 'LW',
+        'Right Wing Back': 'RW',
+        'Right Forward': 'RW',
+        'Left Forward': 'LW',
+        'Centre Forward': 'CF',
+        'Left Centre Midfielder': 'M',
+        'Left Centre Forward': 'CF',
+        'Right Centre Forward': 'CF',
+        'Right Centre Midfielder': 'M',
+        'Left Attacking Midfielder': 'M',
+        'Right Attacking Midfielder': 'M'
+    }
+
+second_position_map = {
+    'RB': 'FB',
+    'LB': 'FB',
+    'LW': 'W',
+    'RW': 'W',
+    'DM': 'DM',
+    'CB': 'CB',
+    'M': 'M',
+    'CF': 'CF',
+    'GK': 'GK'
+}
+
+
+    # Map the primary_position to position
 
 # Adjusted function to match file names
 def match_to_file(row, file_names):
@@ -257,7 +308,7 @@ def match_to_file(row, file_names):
 
 def comparePassHeats(country, league, season, x, event_data, comp_start, comp_end):
    
-    '''x is the number of top d&c players to compare to the target player;
+    '''x is the number of top pass players to compare to the target player;
     event_data is the event_data of the players;
     comp_start and comp_end accept ⁠⁠ output, of Doku in this case'''
 
@@ -267,7 +318,7 @@ def comparePassHeats(country, league, season, x, event_data, comp_start, comp_en
     'league': [league] * len(ns),
     'season': [season] * len(ns),
     'player_names': ns['player_name'],
-    'D&C': ns['player_season_obv_pass_90']
+    'pass': ns['player_season_obv_pass_90']
     }
     df = pd.DataFrame(data)
     # filter out non-Passers
@@ -320,12 +371,12 @@ def comparePassHeats(country, league, season, x, event_data, comp_start, comp_en
     for index, row in df.iterrows():
         player_name = row['player_names']
         if player_name in sorted_distances_start:
-            sorted_distances_start[player_name] = [sorted_distances_start[player_name], row['D&C']]
+            sorted_distances_start[player_name] = [sorted_distances_start[player_name], row['pass']]
     
     for index, row in df.iterrows():
         player_name = row['player_names']
         if player_name in sorted_distances_end:
-            sorted_distances_end[player_name] = [sorted_distances_end[player_name], row['D&C']]
+            sorted_distances_end[player_name] = [sorted_distances_end[player_name], row['pass']]
 
     #out = [sorted_distances_start, sorted_distances_end]
     
@@ -336,17 +387,59 @@ def comparePassHeats(country, league, season, x, event_data, comp_start, comp_en
 
     df_start_new['PlayerName'] = df_start.columns.values
     df_start_new['StartSimilarity'] = df_start.iloc[0,:].values
-    df_start_new['D&C'] = df_start.iloc[1,:].values
+    df_start_new['pass'] = df_start.iloc[1,:].values
 
     df_end_new['PlayerName'] = df_end.columns.values
     df_end_new['EndSimilarity'] = df_end.iloc[0,:].values
-    df_end_new['D&C'] = df_end.iloc[1,:].values
+    df_end_new['pass'] = df_end.iloc[1,:].values
 
-    out = df_start_new.merge(df_end_new, on='PlayerName', suffixes=('', '_end')).drop(['D&C_end'],axis=1)
-    out = out.sort_values(by='D&C', ascending=False)
+    out = df_start_new.merge(df_end_new, on='PlayerName', suffixes=('', '_end')).drop(['pass_end'],axis=1)
+    out = out.sort_values(by='pass', ascending=False)
 
     return out
 
+
+def extract_file_info(filename):
+    # Remove the .csv extension and split the filename by underscores
+    parts = filename.replace('.csv', '').split('_')
+    
+    # Extract the country and league name
+    country = parts[0]
+    leaguename = ' '.join(parts[1:-1])
+    
+    # Extract and format the season
+    season = parts[-1]
+    if len(season) == 2:
+        season = f"20{season}"
+    elif len(season) == 4:
+        season = f"20{season[:2]}/20{season[2:]}"
+    
+    return country, leaguename, season
+
+
+def getPosition(country, league, season, selected_player):
+    filtered_comps = sb.competitions(creds=creds)
+    league = filtered_comps[(filtered_comps['country_name']==country) & (filtered_comps['competition_name']==league) & (filtered_comps['season_name']==season)].copy()
+    comp_id = league['competition_id'].iloc[0]
+    season_id = league['season_id'].iloc[0]
+    player_season = sb.player_season_stats(competition_id=comp_id, season_id=season_id,creds=creds)[['player_id','team_name','player_name','primary_position','player_season_90s_played']]
+    # for players who moved, we take the club they played the most games for
+    player_season = player_season.sort_values('player_season_90s_played', ascending=False)
+    player_season = player_season.groupby('player_id').agg({
+    'team_name': 'first', # choose team he played the most games for
+    'player_name': 'first',
+    'primary_position': 'first',
+    'player_season_90s_played': 'sum' # but some over both teams
+    }).reset_index()
+
+    # Sorting by 'player_season_90s_played' and dropping duplicates (if any, this step might be redundant here)
+    player_season = player_season.drop_duplicates('player_id')
+    
+
+    player_season = player_season[player_season['player_name']==selected_player]
+    player_season['primary_position'] = player_season['primary_position'].map(position_map).fillna('none')
+    player_season['primary_position'] = player_season['primary_position'].map(second_position_map).fillna('none')
+    return player_season['primary_position'].values[0]
 
 
 st.title('Player Comparison')
@@ -365,8 +458,12 @@ df = pd.read_csv(os.path.join(data_folder, selected_file), low_memory=False)
 player_choices = df['player'].unique()
 selected_player = st.selectbox("Select a Player", player_choices)
 #selected_player = 'Jayden Adams'
+# extract position
+country, league, season = extract_file_info(selected_file)
+player_position = getPosition(country, league, season, selected_player)
+
+
 # Filter the original DataFrame based on both league and player
-# selected_player = 'Jeremy Doku'
 data_doku = df[(df['player'] == selected_player) & (df['type']=='Pass')]
 
 grid_size_x = 16
@@ -385,11 +482,11 @@ col1, col2 = st.columns(2)
 
 # Display each plot in a separate column
 with col1:
-    st.header("Starting Positions of Dribbles")
+    st.header("Starting Positions of Passes")
     st.pyplot(plt1)
 
 with col2:
-    st.header("Ending Positions of Dribbles")
+    st.header("Ending Positions of Passes")
     st.pyplot(plt2)
 
 
@@ -409,7 +506,6 @@ def display_top_passers():
 
 
 # Seccond Player
-creds = {"user":"daylesolomon@gmail.com", "passwd": "qIRf28g8"}
 all_sb_leagues = sb.competitions(creds=creds)
 # Apply the function across each row of the DataFrame
 mask = all_sb_leagues.apply(lambda row: match_to_file(row, files), axis=1)
@@ -455,7 +551,7 @@ df_event = pd.read_csv(os.path.join(data_folder, matching_event), low_memory=Fal
 
 if st.button('Show Top Passers'):
     with st.spinner('Fetching data...'):
-        ns_array = comparePassHeats(country, selected_l, season, 20, df_event, heatmap_doku_start, heatmap_doku_end)
+        ns_array = comparePassHeats(country, selected_l, season, 50, df_event, heatmap_doku_start, heatmap_doku_end)
         st.session_state['tops'] = ns_array
         st.session_state['data_loaded'] = True
 display_top_passers()

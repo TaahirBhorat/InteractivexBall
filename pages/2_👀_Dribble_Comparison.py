@@ -10,6 +10,7 @@ from scipy.ndimage import gaussian_filter
 from statsbombpy import sb
 logo_url = 'pics/output-onlinepngtools (1).png'
 st.sidebar.image(logo_url)
+creds = {"user":"daylesolomon@gmail.com", "passwd": "qIRf28g8"}
 
 
 # Display the image and text above the sidebar
@@ -223,17 +224,69 @@ def plot_dribbles_on_pitch(data, min_dribble_length):
 
 def topXdribblers(country, league, season, x):
     '''takes in country name, league name, and season(string) name, 
-    and X to output the top X d&c players in the league'''
-
+    and X to output the top X d&c players in the league'''    
     filtered_comps = sb.competitions(creds=creds)
     league = filtered_comps[(filtered_comps['country_name']==country) & (filtered_comps['competition_name']==league) &
                 (filtered_comps['season_name']==season)]
     comp_id = league['competition_id'].iloc[0]
     season_id = league['season_id'].iloc[0]
-    player_season = sb.player_season_stats(competition_id=comp_id, season_id=season_id,creds=creds)
-
+    player_season = sb.player_season_stats(competition_id=comp_id, season_id=season_id,creds=creds)[["player_name",'player_season_obv_dribble_carry_90','player_season_minutes','primary_position']]
+    player_season['primary_position'] = player_season['primary_position'].map(position_map).fillna('none')
+    player_season['primary_position'] = player_season['primary_position'].map(second_position_map).fillna('none')    
+    player_season = player_season[player_season['primary_position']==player_position]
     names_obv = player_season[player_season['player_season_minutes']>600].sort_values('player_season_obv_dribble_carry_90', ascending=False)[["player_name",'player_season_obv_dribble_carry_90']].reset_index(drop=True)[['player_name','player_season_obv_dribble_carry_90']]
+    
     return names_obv.iloc[0:x,:]
+
+position_map = {
+        'Center Forward': 'CF',
+        'Left Wing': 'LW',
+        'Right Wing': 'RW',
+        'Left Back': 'LB',
+        'Right Back': 'RB',
+        'Center Midfield': 'M',
+        'Left Midfield': 'LW',
+        'Left Midfielder': 'LW',
+        'Right Midfield': 'RW',
+        'Right Midfielder': 'RW',
+        'Defensive Midfielder': 'DM',
+        'Attacking Midfielder': 'M',
+        'Center Back': 'CB',
+        'Goalkeeper': 'GK',
+        'Left Centre Back': 'CB',
+        'Right Centre Back': 'CB',
+        'Left Defensive Midfielder': 'DM',
+        'Right Defensive Midfielder': 'DM',
+        'Centre Attacking Midfielder': 'M',
+        'Centre Defensive Midfielder': 'DM',
+        'Left Wing Back': 'LW',
+        'Right Wing Back': 'RW',
+        'Right Forward': 'RW',
+        'Left Forward': 'LW',
+        'Centre Forward': 'CF',
+        'Left Centre Midfielder': 'M',
+        'Left Centre Forward': 'CF',
+        'Right Centre Forward': 'CF',
+        'Right Centre Midfielder': 'M',
+        'Left Attacking Midfielder': 'M',
+        'Right Attacking Midfielder': 'M'
+    }
+
+second_position_map = {
+    'RB': 'FB',
+    'LB': 'FB',
+    'LW': 'W',
+    'RW': 'W',
+    'DM': 'DM',
+    'CB': 'CB',
+    'M': 'M',
+    'CF': 'CF',
+    'GK': 'GK'
+}
+
+
+    # Map the primary_position to position
+
 
 # List of file names
 data_folder = 'data/leagues'
@@ -354,6 +407,51 @@ def compareDribbleHeats(country, league, season, x, event_data, comp_start, comp
     return out
 
 
+def extract_file_info(filename):
+    # Remove the .csv extension and split the filename by underscores
+    parts = filename.replace('.csv', '').split('_')
+    
+    # Extract the country and league name
+    country = parts[0]
+    leaguename = ' '.join(parts[1:-1])
+    
+    # Extract and format the season
+    season = parts[-1]
+    if len(season) == 2:
+        season = f"20{season}"
+    elif len(season) == 4:
+        season = f"20{season[:2]}/20{season[2:]}"
+    
+    return country, leaguename, season
+
+
+
+def getPosition(country, league, season, selected_player):
+    filtered_comps = sb.competitions(creds=creds)
+    league = filtered_comps[(filtered_comps['country_name']==country) & (filtered_comps['competition_name']==league) & (filtered_comps['season_name']==season)].copy()
+    comp_id = league['competition_id'].iloc[0]
+    season_id = league['season_id'].iloc[0]
+    player_season = sb.player_season_stats(competition_id=comp_id, season_id=season_id,creds=creds)[['player_id','team_name','player_name','primary_position','player_season_90s_played']]
+    # for players who moved, we take the club they played the most games for
+    player_season = player_season.sort_values('player_season_90s_played', ascending=False)
+    player_season = player_season.groupby('player_id').agg({
+    'team_name': 'first', # choose team he played the most games for
+    'player_name': 'first',
+    'primary_position': 'first',
+    'player_season_90s_played': 'sum' # but some over both teams
+    }).reset_index()
+
+    # Sorting by 'player_season_90s_played' and dropping duplicates (if any, this step might be redundant here)
+    player_season = player_season.drop_duplicates('player_id')
+    
+
+    player_season = player_season[player_season['player_name']==selected_player]
+    player_season['primary_position'] = player_season['primary_position'].map(position_map).fillna('none')
+    player_season['primary_position'] = player_season['primary_position'].map(second_position_map).fillna('none')
+    return player_season['primary_position'].values[0]
+
+
+
 
 st.title('Player Comparison')
 
@@ -371,6 +469,10 @@ df = pd.read_csv(os.path.join(data_folder, selected_file), low_memory=False)
 player_choices = df['player'].unique()
 selected_player = st.selectbox("Select a Player", player_choices)
 #selected_player = 'Kimvuidi Keikie Karim'
+
+country, league, season = extract_file_info(selected_file)
+player_position = getPosition(country, league, season, selected_player)
+
 # Filter the original DataFrame based on both league and player
 # selected_player = 'Jeremy Doku'
 data_doku = df[(df['player'] == selected_player) & (df['type']=='Carry')]
@@ -461,7 +563,7 @@ df_event = pd.read_csv(os.path.join(data_folder, matching_event), low_memory=Fal
 
 if st.button('Show Top Dribblers'):
     with st.spinner('Fetching data...'):
-        ns_array = compareDribbleHeats(country, selected_l, season, 20, df_event, heatmap_doku_start, heatmap_doku_end)
+        ns_array = compareDribbleHeats(country, selected_l, season, 40, df_event, heatmap_doku_start, heatmap_doku_end)
         st.session_state['tops'] = ns_array
         st.session_state['data_loaded'] = True
 display_top_dribblers()
